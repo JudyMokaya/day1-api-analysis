@@ -174,53 +174,102 @@ def plot_distribution(counts: dict[str, int], path: Path) -> None:
     print(f"Chart saved to {path}")
 
 
-plot_distribution(
-    counts,
-    "output/customer_distribution.png"
-)
+def main() -> None:
+    """Run the analysis steps and print a short findings summary."""
+    customers = get_customers()
 
-plot_distribution(
-    domain_counts,
-    "output/email_domain_distribution.png"
-)
+    if not customers:
+        print("Analysis stopped because no customer records were retrieved.")
+        return
+
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    # Section 1: Retrieve customer data
+    print("--- Section 1: Retrieve customer data ---")
+    print(f"Total records retrieved: {len(customers)}")
+    print(f"Response type: {type(customers).__name__}")
+
+    # Section 2: Explore nested data
+    print("\n--- Section 2: Explore the first customer ---")
+    explore(customers[0])
+
+    # Section 3: Extract attributes
+    print("\n--- Section 3: Extract customer attributes ---")
+    rows = extract_attributes(customers)
+    df = to_dataframe(rows)
+    print(f"Extracted records: {len(rows)}")
+    print(f"Attributes per record: {len(rows[0]) if rows else 0}")
+
+    if rows:
+        print(f"Latitude data type: {type(rows[0]['latitude']).__name__}")
+
+    # Section 4: Unique cities
+    print("\n--- Section 4: Unique cities ---")
+    cities = unique_cities(customers)
+    print(f"Total records: {len(customers)}")
+    print(f"Unique cities: {len(cities)}")
+
+    if cities:
+        print(
+            "Average records per unique city: "
+            f"{len(customers) / len(cities):.2f}"
+        )
+
+    # Section 5: Count customers by city and top-level email domain
+    print("\n--- Section 5: Count customers ---")
+    city_summary = city_counts(customers)
+    domain_summary = email_domain_counts(customers)
+
+    sorted_cities = dict(
+        sorted(city_summary.items(), key=lambda item: (-item[1], item[0]))
+    )
+    sorted_domains = dict(
+        sorted(domain_summary.items(), key=lambda item: (-item[1], item[0]))
+    )
+
+    print("Customers by city:", sorted_cities)
+    print("Customers by email top-level domain:", sorted_domains)
+
+    # Section 6: DataFrame validation
+    print("\n--- Section 6: DataFrame validation ---")
+    print("DataFrame shape:", df.shape)
+    print("Data types:")
+    print(df.dtypes)
+
+    pandas_city_counts = df["city"].value_counts().to_dict()
+    print(
+        "Manual city counts match Pandas:",
+        city_summary == pandas_city_counts
+    )
+
+    # Section 7: Export CSV files
+    print("\n--- Section 7: Export CSV files ---")
+    df.to_csv(OUTPUT_DIR / "customers.csv", index=False)
+
+    city_df = pd.DataFrame(
+        list(city_summary.items()),
+        columns=["city", "customer_count"],
+    ).sort_values(
+        by=["customer_count", "city"],
+        ascending=[False, True],
+    )
+
+    city_df.to_csv(OUTPUT_DIR / "city_counts.csv", index=False)
+
+    print(f"Customer data saved to {OUTPUT_DIR / 'customers.csv'}")
+    print(f"City counts saved to {OUTPUT_DIR / 'city_counts.csv'}")
+
+    # Section 8: Create charts
+    print("\n--- Section 8: Create charts ---")
+    plot_distribution(
+        city_summary,
+        OUTPUT_DIR / "customer_distribution.png",
+    )
+    plot_distribution(
+        domain_summary,
+        OUTPUT_DIR / "email_domain_distribution.png",
+    )
 
 
-
-
-
-
-
-
-
-customers = get_customers(API_URL)
-# sec3
-# rows = extract_attributes(customers)
-
-# print(rows[0])
-# print(len(rows))
-# print(rows[0]["latitude"], type(rows[0]["latitude"]))
-# print(len(rows[0]))
-# print(rows[0].keys())
-
-# sec 2
-# if customers:
-#     explore(customers[0])
-
-
-# sec1
-# print(type(customers))
-# print(len(customers))
-# print(customers[0])
-
-
-# sample = {
-#     "name": "Leanne",
-#     "address": {
-#         "city": "Gwenborough",
-#         "geo": {
-#             "lat": "-37.3159"
-#         }
-#     }
-# }
-
-# explore(sample)
+if __name__ == "__main__":
+    main()
