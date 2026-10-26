@@ -228,7 +228,7 @@ def main() -> None:
     )
 
     print("Customers by city:", sorted_cities)
-    print("Customers by email top-level domain:", sorted_domains)
+    print("\nCustomers by email top-level domain:", sorted_domains)
 
     # Section 6: DataFrame validation
     print("\n--- Section 6: DataFrame validation ---")

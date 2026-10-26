@@ -291,8 +291,15 @@ The results from the sample API data were:
 
 - Total records: 10
 - Unique cities: 10
-- Unique email domains: 10
-- Count per city and email domain: 1 each
+- Unique email domains: 
+     - biz: 3
+     - ca: 1
+     - info: 1
+     - io: 1
+     - me: 1
+     - net: 1
+     - org: 1
+     - tv: 1
 
 All records had different cities and email domains. The counts were sorted by frequency and alphabetically when counts were equal.
 
@@ -456,15 +463,15 @@ The following charts were successfully generated:
 
 Both charts were saved in the output folder using Matplotlib. Each chart visualises the frequency counts for its respective category.
 
-Since every city and email domain appears once, both charts show equal counts across all categories.
+The two charts provide a visual summary of the customer data.  
 
 ### Which chart is more useful?
 
 The city chart helps show how records are distributed across cities. In this sample, every city has one record, so no city has a higher count than another.
 
-The email-domain chart helps show which email domains occur most often. If multiple records share a domain, this chart makes that pattern easier to see.
+The email top-level domain chart shows that biz was the most frequent domain ending. 
 
-For a real business dataset, the more useful chart would depend on the question being investigated.
+These visualizations make it easier to identify patterns and compare categories than by examining the raw counts alone.
 
 **What I learned:** How to turn frequency counts into bar charts and save the visual results as image files.
 
