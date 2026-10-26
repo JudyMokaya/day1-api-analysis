@@ -286,13 +286,7 @@ plot_distribution(
 
 
 
-
-
-
-
-
-
-customers = get_customers(API_URL)
+# customers = get_customers(API_URL)
 # sec3
 # rows = extract_attributes(customers)
 
