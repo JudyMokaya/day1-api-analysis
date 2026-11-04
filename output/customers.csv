@@ -1,4 +1,4 @@
-id,name,username,email,email_domain,phone,city,zipcode,latitude,longitude,company,website
+customer_id,name,username,email,email_domain,phone,city,zipcode,latitude,longitude,company,website
 1,Leanne Graham,Bret,Sincere@april.biz,april.biz,1-770-736-8031 x56442,Gwenborough,92998-3874,-37.3159,81.1496,Romaguera-Crona,hildegard.org
 2,Ervin Howell,Antonette,Shanna@melissa.tv,melissa.tv,010-692-6593 x09125,Wisokyburgh,90566-7771,-43.9509,-34.4618,Deckow-Crist,anastasia.net
 3,Clementine Bauch,Samantha,Nathan@yesenia.net,yesenia.net,1-463-123-4447,McKenziehaven,59590-4157,-68.6102,-47.0653,Romaguera-Jacobson,ramiro.info

@@ -22,6 +22,7 @@ def get_customers(url: str = API_URL) -> list[dict]:
         response.raise_for_status()
         customers = response.json()
 
+        # check that the returned data has expected structure
         if not isinstance(customers, list):
             print("Request succeeded, but the response was not a list of customers.")
             return []
@@ -37,10 +38,11 @@ def explore(record: dict, indent: int = 0) -> None:
     """Print every key in a (possibly nested) record with its type, indented by depth."""
     if isinstance(record, dict):
         for key, value in record.items():
-            print(" " * indent + f"{key}: {type(value).__name__}")
+            print(" " * indent + f"{key}: {type(value).__name__}")    #returns the datatype without class
             if isinstance(value, (dict, list)):
                 explore(value, indent + 4)
 
+    #checks if the record is a list
     elif isinstance(record, list):
         for index, value in enumerate(record):
             print(" " * indent + f"[{index}]: {type(value).__name__}")
@@ -52,12 +54,14 @@ def extract_attributes(customers: list[dict]) -> list[dict]:
     """Return one flat dict per customer with the attributes listed in the task."""
     rows = []
 
+    #extract nested dictionaries
     for customer in customers:
+        email = customer.get("email", "")
+        email_domain = email.rsplit("@", 1)[-1] if "@" in email else None
         address = customer.get("address", {})
         geo = address.get("geo", {})
         company = customer.get("company", {})
-        email = customer.get("email", "")
-        email_domain = email.rsplit("@", 1)[-1] if "@" in email else ""
+        
 
         latitude = geo.get("lat")
         longitude = geo.get("lng")
@@ -73,13 +77,13 @@ def extract_attributes(customers: list[dict]) -> list[dict]:
             longitude = None
 
         row = {
-            "id": customer.get("id"),
+            "customer_id": customer.get("id"),
             "name": customer.get("name"),
             "username": customer.get("username"),
             "email": email,
             "email_domain": email_domain,
             "phone": customer.get("phone"),
-            "city": address.get("city"),
+            "city": address.get("city") or "Unknown",
             "zipcode": address.get("zipcode"),
             "latitude": latitude,
             "longitude": longitude,
@@ -95,7 +99,7 @@ def extract_attributes(customers: list[dict]) -> list[dict]:
 def unique_cities(customers: list[dict]) -> set[str]:
     """Return the set of distinct cities."""
     return {
-        customer.get("address", {}).get("city")
+        customer.get("address", {}).get("city") or "Unknown"
         for customer in customers
         if customer.get("address", {}).get("city")
     }
@@ -106,7 +110,7 @@ def city_counts(customers: list[dict]) -> dict[str, int]:
     counts = {}
 
     for customer in customers:
-        city = customer.get("address", {}).get("city")
+        city = customer.get("address", {}).get("city") or "Unknown"
 
         if city:
             counts[city] = counts.get(city, 0) + 1
@@ -172,6 +176,30 @@ def plot_distribution(counts: dict[str, int], path: Path) -> None:
     plt.close(fig)
 
     print(f"Chart saved to {path}")
+
+
+def export_csv(df: pd.DataFrame,city_summary: dict[str, int],output_dir: Path) -> None:
+    """Export customer data and city counts to CSV files."""
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Export customer records
+    df.to_csv(output_dir / "customers.csv", index=False)
+
+    # Create a DataFrame for city counts
+    city_df = pd.DataFrame(
+        list(city_summary.items()),
+        columns=["city", "customer_count"],
+    ).sort_values(
+        by=["customer_count", "city"],
+        ascending=[False, True],
+    )
+
+    # Export city counts
+    city_df.to_csv(output_dir / "city_counts.csv", index=False)
+
+    print(f"Customer data saved to {output_dir / 'customers.csv'}")
+    print(f"City counts saved to {output_dir / 'city_counts.csv'}")
 
 
 def main() -> None:
@@ -244,20 +272,8 @@ def main() -> None:
 
     # Section 7: Export CSV files
     print("\n--- Section 7: Export CSV files ---")
-    df.to_csv(OUTPUT_DIR / "customers.csv", index=False)
 
-    city_df = pd.DataFrame(
-        list(city_summary.items()),
-        columns=["city", "customer_count"],
-    ).sort_values(
-        by=["customer_count", "city"],
-        ascending=[False, True],
-    )
-
-    city_df.to_csv(OUTPUT_DIR / "city_counts.csv", index=False)
-
-    print(f"Customer data saved to {OUTPUT_DIR / 'customers.csv'}")
-    print(f"City counts saved to {OUTPUT_DIR / 'city_counts.csv'}")
+    export_csv(df, city_summary, OUTPUT_DIR)
 
     # Section 8: Create charts
     print("\n--- Section 8: Create charts ---")
@@ -267,7 +283,7 @@ def main() -> None:
     )
     plot_distribution(
         domain_summary,
-        OUTPUT_DIR / "email_domain_distribution.png",
+        OUTPUT_DIR / "top_level_email_domain_distribution.png",
     )
 
 
